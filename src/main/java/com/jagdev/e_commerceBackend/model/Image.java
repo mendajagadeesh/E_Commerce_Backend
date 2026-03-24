@@ -20,7 +20,7 @@ public class Image {
     private String fileName;
     private String fileType;
     @Lob
-    private byte[] image;
+    private Blob image;
     private String downloadUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -56,18 +56,24 @@ public class ImageController {
 
 
     @PutMapping("/image/{imageId}/update")
-    public ResponseEntity<ApiResponse> updateImages(@PathVariable Long imageId,@RequestParam MultipartFile file) {
+    public ResponseEntity<ApiResponse> updateImages(@PathVariable Long imageId,@RequestParam(required = false) MultipartFile file) {
         try {
+            // Validate file is present and not empty
+            if(file == null || file.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ApiResponse("File is required. Please provide a 'file' parameter in multipart form", null));
+            }
+            
             Image image = imageService.getImageById(imageId);
             if(image != null) {
                 imageService.updateImage(file,imageId);
                 return ResponseEntity.ok(new ApiResponse("update successful", null));
             }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse("Image with id " + imageId + " not found", null));
         }catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(e.getMessage(),null));
         }
-        return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse("update failed", INTERNAL_SERVER_ERROR));
-
     }
 
 

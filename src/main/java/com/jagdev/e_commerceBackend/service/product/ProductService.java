@@ -1,27 +1,31 @@
 package com.jagdev.e_commerceBackend.service.product;
 
+import com.jagdev.e_commerceBackend.Dto.ImageDto;
+import com.jagdev.e_commerceBackend.Dto.ProductDto;
 import com.jagdev.e_commerceBackend.exception.ProductNotFoundException;
 import com.jagdev.e_commerceBackend.model.Category;
+import com.jagdev.e_commerceBackend.model.Image;
 import com.jagdev.e_commerceBackend.model.Product;
 import com.jagdev.e_commerceBackend.repository.CategoryRepository;
+import com.jagdev.e_commerceBackend.repository.ImageRepository;
 import com.jagdev.e_commerceBackend.repository.ProductRepository;
 import com.jagdev.e_commerceBackend.request_dto.AddProductRequestDto;
 import com.jagdev.e_commerceBackend.request_dto.ProductUpdateRequestDto;
+import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ProductService implements IProductService{
 
+    private final ImageRepository  imageRepository;
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
-
-    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
-        this.productRepository = productRepository;
-        this.categoryRepository = categoryRepository;
-    }
+    private final ModelMapper modelMapper;
 
     @Override
     public Product addProduct(AddProductRequestDto addProductRequestDto) {
@@ -117,7 +121,7 @@ public class ProductService implements IProductService{
 
     @Override
     public List<Product> getProductsByName(String name) {
-        return productRepository.findByName(name);
+        return productRepository.findByNameIgnoreCase(name);
     }
 
     @Override
@@ -127,9 +131,25 @@ public class ProductService implements IProductService{
 
     @Override
     public Long countProductsByBrandAndName(String brand, String name) {
-        return productRepository.countByBrandAndName(brand,name);
+        return productRepository.countByBrandIgnoreCaseAndNameIgnoreCase(brand, name);
     }
 
+  @Override
+    public List<ProductDto> getConvertedProducts(List<Product> products){
+        return products.stream().map(this::convertToDto).toList();
 
+    }
+
+    @Override
+   public ProductDto convertToDto(Product product) {
+       ProductDto productDto = modelMapper.map(product, ProductDto.class);
+       List<Image> images = imageRepository.findByProductId(product.getId());
+       List<ImageDto> imageDtos = images.stream().map(image -> modelMapper.map(
+               image, ImageDto.class
+
+       )).toList();
+   productDto.setImages(imageDtos);
+   return productDto;
+   }
 
 }

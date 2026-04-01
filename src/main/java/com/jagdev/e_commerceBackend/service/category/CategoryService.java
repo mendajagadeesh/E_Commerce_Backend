@@ -35,12 +35,18 @@ public class CategoryService implements ICategoryService{
 
     @Override
     public Category addCategory(Category category) {
+        String categoryName = Optional.ofNullable(category)
+            .map(Category::getName)
+            .map(String::trim)
+            .filter(name -> !name.isEmpty())
+            .orElseThrow(() -> new IllegalArgumentException("category name must not be empty"));
 
-        return Optional.of(category).filter(c ->!categoryRepository.existsByName(c.getName()))
-                .map(categoryRepository::save).orElseThrow(
-                        ()->new AlreadyExistsEXception(category.getName()+"already exist")
+        if (categoryRepository.existsByName(categoryName)) {
+            throw new AlreadyExistsEXception(categoryName + " already exist");
+        }
 
-                );
+        // Persist a brand-new entity so request payload id/products never trigger merge.
+        return categoryRepository.save(new Category(categoryName));
     }
 
     @Override

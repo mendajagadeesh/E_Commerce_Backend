@@ -52,7 +52,7 @@ public class ImageService implements IImageService{
                 image.setImage(new SerialBlob(fileItem.getBytes()));
                 image.setProduct(product);
 
-                String buildDownloadUrl="/api/v1/images/image/download";
+                String buildDownloadUrl="/api/v1/images/image/download/";
                 String downloadUrl=buildDownloadUrl+image.getId();
                 image.setDownloadUrl(downloadUrl);
                 Image savedImage=imageRepository.save(image);

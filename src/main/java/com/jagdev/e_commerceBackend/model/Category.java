@@ -1,5 +1,6 @@
 package com.jagdev.e_commerceBackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,6 +20,7 @@ public class Category {
     private Long id;
     private String name;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "category",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Product> products;
     public Category(String name) {

@@ -9,11 +9,13 @@ import com.jagdev.e_commerceBackend.repository.CartRepository;
 import com.jagdev.e_commerceBackend.service.product.IProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CartItemService  implements ICartItemService{
 
     private final CartRepository cartRepository;
@@ -49,40 +51,40 @@ public class CartItemService  implements ICartItemService{
         }
         cartItem.setTotalPrice();
         cart.addItem(cartItem);
-        cartItemRepository.save(cartItem);
         cartRepository.save(cart);
     }
 
     @Override
-    public void removeItemFromCart(Long cartId, Long productId) {
+    public void removeItemFromCart(Long cartId, Long itemId) {
        Cart cart=cartService.getCart(cartId);
-       CartItem itemToRemove=getCartItem(cartId,productId);
+       CartItem itemToRemove=getCartItem(cartId,itemId);
        cart.removeItem(itemToRemove);
        cartRepository.save(cart);
 
     }
 
     @Override
-    public void updateItemQuantity(Long cartId, Long productId, int quantity) {
+    public void updateItemQuantity(Long cartId, Long itemId, int quantity) {
          Cart cart=cartService.getCart(cartId);
          cart.getCartItems().stream().
-                 filter(item->item.getProduct().getId().equals(productId))
+                 filter(item->item.getId().equals(itemId))
                  .findFirst().ifPresent(item->{
                      item.setQuantity(quantity);
                      item.setUnitPrice(item.getProduct().getPrice());
                      item.setTotalPrice();
                  });
-         BigDecimal totalAmount=cart.getTotalAmount();
+         BigDecimal totalAmount=cart.getCartItems().stream().map(CartItem::getTotalPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
+
          cart.setTotalAmount(totalAmount);
          cartRepository.save(cart);
     }
 
     @Override
-    public CartItem getCartItem(Long cartId, Long productId) {
+    public CartItem getCartItem(Long cartId, Long itemId) {
         Cart cart=cartService.getCart(cartId);
         return cart.getCartItems().stream()
-                .filter(item -> item.getProduct().getId()
-                        .equals(productId))
+                .filter(item -> item.getId()
+                        .equals(itemId))
                 .findFirst().orElseThrow(() -> new ResourceNotFoundException("Item not found"));
     }
 }

@@ -2,16 +2,17 @@ package com.jagdev.e_commerceBackend.service.Cart;
 
 import com.jagdev.e_commerceBackend.exception.ResourceNotFoundException;
 import com.jagdev.e_commerceBackend.model.Cart;
-import com.jagdev.e_commerceBackend.model.CartItem;
 import com.jagdev.e_commerceBackend.repository.CartItemRepository;
 import com.jagdev.e_commerceBackend.repository.CartRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CartService implements ICartService {
 
     private final CartRepository cartRepository;
@@ -19,11 +20,11 @@ public class CartService implements ICartService {
     private final CartItemRepository cartItemRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public Cart getCart(Long id) {
-        Cart cart=cartRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Cart not found!")
-        );
-        BigDecimal totalAmount=cart.getTotalAmount();
+        Cart cart =cartRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found!"));
+        BigDecimal totalAmount = cart.getTotalAmount();
         cart.setTotalAmount(totalAmount);
         return cartRepository.save(cart);
     }
@@ -42,5 +43,10 @@ public class CartService implements ICartService {
     public BigDecimal getTotalPrice(Long id) {
         Cart cart=getCart(id);
         return cart.getTotalAmount();
+    }
+
+    @Override
+    public Long initializeNewCart() {
+        return cartRepository.save(new Cart()).getId();
     }
 }

@@ -1,9 +1,12 @@
 package com.jagdev.e_commerceBackend.Controllers;
 
 import com.jagdev.e_commerceBackend.exception.ResourceNotFoundException;
+import com.jagdev.e_commerceBackend.model.Cart;
+import com.jagdev.e_commerceBackend.model.User;
 import com.jagdev.e_commerceBackend.responses.ApiResponse;
 import com.jagdev.e_commerceBackend.service.Cart.ICartItemService;
 import com.jagdev.e_commerceBackend.service.Cart.ICartService;
+import com.jagdev.e_commerceBackend.service.user.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,20 +18,21 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @RequestMapping("${api.prefix}/cartItems")
 public class CartItemController {
 
+    private final IUserService  userService;
     private final ICartItemService cartItemService;
     private final ICartService cartService;
 
     @PostMapping("/item/add")
-    public ResponseEntity<ApiResponse> addItemToCart(@RequestParam(required = false) Long cartId,
+    public ResponseEntity<ApiResponse> addItemToCart(
                                                      @RequestParam Long productId,
                                                @RequestParam Integer quantity){
 
         try {
 
-            if(cartId ==null){
-                cartId=cartService.initializeNewCart();
-            }
-        cartItemService.addItem(cartId, productId, quantity);
+            User user=userService.getUserById(3L);
+            Cart cart=cartService.initializeNewCart(user);
+
+            cartItemService.addItem(cart.getId(), productId, quantity);
         return ResponseEntity.ok(new ApiResponse("add item success", null));
          }catch(ResourceNotFoundException e){
             return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));

@@ -1,6 +1,7 @@
 package com.jagdev.e_commerceBackend.service.Cart;
 
 import com.jagdev.e_commerceBackend.model.Cart;
+import com.jagdev.e_commerceBackend.model.User;
 
 import java.math.BigDecimal;
 
@@ -9,7 +10,7 @@ public interface ICartService {
     void clearCart(Long id);
     BigDecimal getTotalPrice(Long id);
 
-    Long initializeNewCart();
+    Cart initializeNewCart(User user);
 
     Cart getCartByUserId(Long userId);
 }

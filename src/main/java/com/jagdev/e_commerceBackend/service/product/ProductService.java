@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.rmi.AlreadyBoundException;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +34,13 @@ public class ProductService implements IProductService{
         //if yes. set it as the new product category
         //if no,then save it as a new category
         //Then set as the new product category
+        if(productExists(addProductRequestDto.getName(),addProductRequestDto.getBrand())){
+            try {
+                throw new AlreadyBoundException(addProductRequestDto.getBrand() +" "+addProductRequestDto.getName()+" already exists,you may update this product instead");
+            } catch (AlreadyBoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
         Category category = Optional.ofNullable(categoryRepository.findByName(addProductRequestDto.getCategory()))
                 .orElseGet(()->{
                     Category newCategory = new Category(addProductRequestDto.getCategory());
@@ -41,6 +49,11 @@ public class ProductService implements IProductService{
         return productRepository.save(createProduct(addProductRequestDto,category));
 
     }
+
+    private boolean productExists(String name,String brand){
+        return productRepository.existsByNameAndBrand(name,brand);
+    }
+
 
     private Product createProduct(AddProductRequestDto addProductRequestDto, Category category){
         Product product = new Product();

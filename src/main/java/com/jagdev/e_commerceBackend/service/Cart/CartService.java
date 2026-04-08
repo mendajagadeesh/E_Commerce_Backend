@@ -2,6 +2,7 @@ package com.jagdev.e_commerceBackend.service.Cart;
 
 import com.jagdev.e_commerceBackend.exception.ResourceNotFoundException;
 import com.jagdev.e_commerceBackend.model.Cart;
+import com.jagdev.e_commerceBackend.model.User;
 import com.jagdev.e_commerceBackend.repository.CartItemRepository;
 import com.jagdev.e_commerceBackend.repository.CartRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +21,8 @@ public class CartService implements ICartService {
     private final CartRepository cartRepository;
 
     private final CartItemRepository cartItemRepository;
+
+    private final AtomicLong cartIdGenerator=new AtomicLong(0);
 
     @Override
     @Transactional(readOnly = true)
@@ -45,9 +50,17 @@ public class CartService implements ICartService {
         return cart.getTotalAmount();
     }
 
+
     @Override
-    public Long initializeNewCart() {
-        return cartRepository.save(new Cart()).getId();
+    public Cart initializeNewCart(User user) {
+        return Optional.ofNullable(getCartByUserId(user.getId())).orElseGet(
+                ()->{
+                    Cart cart=new Cart();
+                    cart.setUser(user);
+                    return cartRepository.save(cart);
+
+                });
+
     }
 
     @Override

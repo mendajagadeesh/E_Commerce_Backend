@@ -46,7 +46,7 @@ public class ProductController {
             Product theproduct=productService.addProduct(product);
             return ResponseEntity.status(CREATED).body(new ApiResponse("add product Success", theproduct));
         }catch (Exception e) {
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse(e.getMessage(), null));
+            return ResponseEntity.status(CONFLICT).body(new ApiResponse(e.getMessage(), null));
         }
     }
 
